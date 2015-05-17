@@ -31,6 +31,7 @@ var Frame = function(){
     var rolls = [];
     var maxOfRolls = 2;
     var maxPoints = 10;
+    var points = 0;
 
     var createANewRoll = function(max){
         if (rolls.length < maxOfRolls) rolls.push(new Roll(max));
@@ -47,7 +48,7 @@ var Frame = function(){
 
     var roll = function(index){
         rolls[index].takeARoll();
-        this.points += rolls[index].roll;
+        points += rolls[index].roll;
     };
 
     this.makeRolls = function(){
@@ -55,12 +56,16 @@ var Frame = function(){
         for (var i = 0; i < maxOfRolls; i++) {
             if (max) {
                 createANewRoll(max);
-                roll();
+                roll(i);
                 max -= rolls[i].roll;
                 if (i === 0) isAStrike();
                 else isASpare();
             }
         }
+    };
+
+    this.getPoints = function(){
+        return points;
     };
 
     this.getPointsByIndex = function(index){
@@ -71,6 +76,7 @@ var Frame = function(){
 var Game = function(){
     var frames = [];
     var maxOfFrames = 10;
+    var score = 0;
 
     var createAFrame = function(){
         if (frames.length < maxOfFrames) frames.push(new Frame());
@@ -79,16 +85,43 @@ var Game = function(){
 
     var fillFrames = function(){
         var i;
+        var rollNumber = 0;
+        var additionalPoints = [];
         for (i = 0; i < maxOfFrames; i++) {
             createAFrame();
+            frames[i].makeRolls();
+            rollNumber += 1;
+            frames[i].result = frames[i].getPoints();
+            additionalPoints[rollNumber] = [[frames[i].getPoints(), i]];
+            score += frames[i].getPoints();
+            if (frames[i].strike) {
+                additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
+                additionalPoints[rollNumber + 1].push(rollNumber);
+                additionalPoints[rollNumber + 2] = additionalPoints[rollNumber + 2] || [[]];
+                additionalPoints[rollNumber + 2].push(rollNumber);
+            } else if (frames[i].spare){
+                additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
+                additionalPoints[rollNumber + 1].push(rollNumber);
+            }
+            var max = additionalPoints[rollNumber].length;
+            if (max > 1) {
+                var apElement = additionalPoints[rollNumber];
+                for (var j = 1; j < max; max++) {
+                    var apInd = apElement[j];
+                    frames[apElement[0][1]].result += additionalPoints[apInd][0][0];
+                }
+            }
         }
+        console.log(frames);
     };
 
     this.play = function(){
         fillFrames();
     };
+
+    this.getFrames = function(){
+        return frames;
+    };
 };
 
-var game = new Game();
-game.play();
 
