@@ -19,7 +19,7 @@
 
 //var d = document;
 
-var Roll = function(max){
+var SimulatedRoll = function(max){
     var min = 1;
 
     this.takeARoll = function(){
@@ -27,14 +27,20 @@ var Roll = function(max){
     };
 };
 
-var Frame = function(){
+var SimulatedRollFactory = function() {
+    var createInstance = function(max){
+        return new SimulatedRoll(max);
+    };
+};
+
+var Frame = function(rollFactoryObj){
     var rolls = [];
     var maxOfRolls = 2;
     var maxPoints = 10;
     var points = 0;
 
     var createANewRoll = function(max){
-        if (rolls.length < maxOfRolls) rolls.push(new Roll(max));
+        if (rolls.length < maxOfRolls) rolls.push(rollFactoryObj.createInstance(max));
         else throw new Error('Number of rolls exceeded');
     };
 
@@ -78,17 +84,17 @@ var Game = function(){
     var maxOfFrames = 10;
     var score = 0;
 
-    var createAFrame = function(){
-        if (frames.length < maxOfFrames) frames.push(new Frame());
+    var createAFrame = function(rollFactoryObj){
+        if (frames.length < maxOfFrames) frames.push(new Frame(rollFactoryObj));
         else throw new Error('Number of frames exceeded');
     };
 
-    var fillFrames = function(){
+    var fillFrames = function(rollFactoryObj){
         var i;
         var rollNumber = 0;
         var additionalPoints = [];
         for (i = 0; i < maxOfFrames; i++) {
-            createAFrame();
+            createAFrame(rollFactoryObj);
             frames[i].makeRolls();
             rollNumber += 1;
             frames[i].result = frames[i].getPoints();
@@ -115,8 +121,8 @@ var Game = function(){
         console.log(frames);
     };
 
-    this.play = function(){
-        fillFrames();
+    this.play = function(rollFactoryObj){
+        fillFrames(rollFactoryObj);
     };
 
     this.getFrames = function(){
@@ -126,12 +132,18 @@ var Game = function(){
 
 var View = function(){
     var results = [];
-    var initGame = function(){
-        var game = new Game();
-        game.play();
-        results = game.getFrames();
+
+    var createRollFactoryInstance = function(){
+        return new SimulatedRollFactory();
     };
 
+    var initGame = function(){
+        var rollFactoryObj = createRollFactoryInstance();
+        var game = new Game();
+        game.play(rollFactoryObj);
+        results = game.getFrames();
+    };
+    
     var createResultsTable = function(){
         var body = d.body;
         var thead = d.createElement('thead');
