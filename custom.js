@@ -124,4 +124,27 @@ var Game = function(){
     };
 };
 
+var View = function(){
+    var results = [];
+    var initGame = function(){
+        var game = new Game();
+        game.play();
+        results = game.getFrames();
+    };
 
+    var createResultsTable = function(){
+        var body = d.body;
+        var thead = d.createElement('thead');
+        var tfoot = d.createElement('tfoot');
+        var table = d.createElement('table');
+        var tbody = d.createElement('tbody');
+        var max = results.length;
+        for (var i = 0; i < max; i++) {
+            var tr = d.createElement('tr');
+            var td = d.createElement('td');
+            var text = d.createTextNode(i+1);
+            td.appendChild(text);
+            var frame = results[i];
+        }
+    }
+};
