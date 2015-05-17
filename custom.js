@@ -24,6 +24,7 @@ var SimulatedRoll = function(max){
 
     this.takeARoll = function(){
         this.roll = (Math.random() * (max) | 0) + min;
+        return this.roll;
     };
 };
 
@@ -39,34 +40,39 @@ var Frame = function(rollFactoryObj){
     var maxPoints = 10;
     var points = 0;
 
-    var createANewRoll = function(max){
-        if (rolls.length < maxOfRolls) rolls.push(rollFactoryObj.createInstance(max));
-        else throw new Error('Number of rolls exceeded');
+    var createNewRoll = function(max){
+        if (rolls.length < maxOfRolls) {
+            return rollFactoryObj.createInstance(max);
+        } else throw new Error('Number of rolls exceeded');
+    };
+    
+    var addNewRoll = function(newRollObj){
+        rolls.push(newRollObj);
+        return newRollObj;
     };
 
-    var isAStrike = function (){
-        this.strike = (maxPoints === rolls[0].roll);
+    var isStrike = function (val){
+        this.strike = (maxPoints === val);
+        return this.strike;
     };
 
-    var isASpare = function(){
-        this.spare = (maxPoints === (rolls[0].roll + rolls[1].roll));
+    var isSpare = function(){
+        this.spare = (maxPoints === points);
+        return this.spare;
     };
 
-    var roll = function(index){
-        rolls[index].takeARoll();
-        points += rolls[index].roll;
+    var addStats = function(val){
+        points += val;
     };
 
     this.makeRolls = function(){
-        var max = maxPoints;
+        var rollPoints;
         for (var i = 0; i < maxOfRolls; i++) {
-            if (max) {
-                createANewRoll(max);
-                roll(i);
-                max -= rolls[i].roll;
-                if (i === 0) isAStrike();
-                else isASpare();
-            }
+            var newRollObj = addNewRoll(createNewRoll(maxPoints - points));
+            rollPoints = newRollObj.takeARoll();
+            addStats(rollPoints);
+            if (isStrike(val)) return;
+            isSpare();
         }
     };
 
