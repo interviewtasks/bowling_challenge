@@ -17,10 +17,9 @@
  ·       Create a method that randomly throws a roll (one roll is 1-10 pins knocked down), and progresses the scoring.
  */
 
-var d = document;
+//var d = document;
 
-var Roll = function(){
-    var max = 10;
+var Roll = function(max){
     var min = 1;
 
     this.takeARoll = function(){
@@ -31,10 +30,41 @@ var Roll = function(){
 var Frame = function(){
     var rolls = [];
     var maxOfRolls = 2;
+    var maxPoints = 10;
 
-    this.createANewRoll = function(){
-        if (rolls.length < maxOfRolls) rolls.push(new Roll());
+    var createANewRoll = function(max){
+        if (rolls.length < maxOfRolls) rolls.push(new Roll(max));
         else throw new Error('Number of rolls exceeded');
+    };
+
+    var isAStrike = function (){
+        this.strike = (maxPoints === rolls[0].roll);
+    };
+
+    var isASpare = function(){
+        this.spare = (maxPoints === (rolls[0].roll + rolls[1].roll));
+    };
+
+    var roll = function(index){
+        rolls[index].takeARoll();
+        this.points += rolls[index].roll;
+    };
+
+    this.makeRolls = function(){
+        var max = maxPoints;
+        for (var i = 0; i < maxOfRolls; i++) {
+            if (max) {
+                createANewRoll(max);
+                roll();
+                max -= rolls[i].roll;
+                if (i === 0) isAStrike();
+                else isASpare();
+            }
+        }
+    };
+
+    this.getPointsByIndex = function(index){
+        return rolls[index].roll;
     };
 };
 
@@ -60,6 +90,5 @@ var Game = function(){
 };
 
 var game = new Game();
-
-
+game.play();
 
