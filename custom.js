@@ -3,7 +3,6 @@
  ·       Please create a repository in GitHub (or similar) so that we can follow your progress.
  ·       Please use plain JavaScript
  ·       Please note that it does not need to be feature-complete, we are more curious about the way you approach solving problems.
-
  Implement a scoring system for a bowling game:
  ·       A game consists of 10 frames.
  ·       In general each frame has 2 rolls.
@@ -11,8 +10,8 @@
  ·       If the player knocks down all 10 pins on the first roll it’s a strike. The player scores 10 plus the number of pins knocked down in the next two rolls.
  ·       If the player knocks down all 10 pins in two rolls it’s a spare. The player scores 10 plus the number of pins knocked down in the next roll.
  ·       Optional: The player gets additional rolls in the last frame:
-            - one additional for a spare after the second roll or
-            - two extra rolls for a strike.
+ - one additional for a spare after the second roll or
+ - two extra rolls for a strike.
  ·       Visualize the scoring of the game.
  ·       Create a method that randomly throws a roll (one roll is 1-10 pins knocked down), and progresses the scoring.
  */
@@ -23,13 +22,13 @@ var SimulatedRoll = function(max){
     var min = 1;
 
     this.takeARoll = function(){
-        this.roll = (Math.random() * (max) | 0) + min;
+        this.roll = (Math.random() * max | 0) + min;
         return this.roll;
     };
 };
 
 var SimulatedRollFactory = function() {
-    var createInstance = function(max){
+    this.createInstance = function(max){
         return new SimulatedRoll(max);
     };
 };
@@ -45,7 +44,7 @@ var Frame = function(rollFactoryObj){
             return rollFactoryObj.createInstance(max);
         } else throw new Error('Number of rolls exceeded');
     };
-    
+
     var addNewRoll = function(newRollObj){
         rolls.push(newRollObj);
         return newRollObj;
@@ -71,9 +70,11 @@ var Frame = function(rollFactoryObj){
             var newRollObj = addNewRoll(createNewRoll(maxPoints - points));
             rollPoints = newRollObj.takeARoll();
             addStats(rollPoints);
-            if (isStrike(val)) return;
+            if (isStrike(rollPoints)) return;
             isSpare();
         }
+        this.rolls = rolls;
+        return rolls;
     };
 
     this.getPoints = function(){
@@ -90,9 +91,15 @@ var Game = function(){
     var maxOfFrames = 10;
     var score = 0;
 
-    var createAFrame = function(rollFactoryObj){
-        if (frames.length < maxOfFrames) frames.push(new Frame(rollFactoryObj));
-        else throw new Error('Number of frames exceeded');
+    var createFrame = function(rollFactoryObj){
+        if (frames.length < maxOfFrames) {
+            return new Frame(rollFactoryObj);
+        } else throw new Error('Number of frames exceeded');
+    };
+
+    var addFrame = function(frameObj) {
+        frames.push(frameObj);
+        return frameObj;
     };
 
     var fillFrames = function(rollFactoryObj){
@@ -100,11 +107,11 @@ var Game = function(){
         var rollNumber = 0;
         var additionalPoints = [];
         for (i = 0; i < maxOfFrames; i++) {
-            createAFrame(rollFactoryObj);
-            frames[i].makeRolls();
+            var newFrame = addFrame(createFrame(rollFactoryObj));
+            var newFrameRolls = newFrame.makeRolls();
             rollNumber += 1;
-            frames[i].result = frames[i].getPoints();
-            additionalPoints[rollNumber] = [[frames[i].getPoints(), i]];
+            newFrame.result = newFrame.getPoints();
+            additionalPoints[rollNumber] = [newFrame.getPoints(), i]];
             score += frames[i].getPoints();
             if (frames[i].strike) {
                 additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
@@ -125,6 +132,7 @@ var Game = function(){
             }
         }
         console.log(frames);
+        this.frames = frames;
     };
 
     this.play = function(rollFactoryObj){
@@ -143,13 +151,13 @@ var View = function(){
         return new SimulatedRollFactory();
     };
 
-    var initGame = function(){
+    this.initGame = function(){
         var rollFactoryObj = createRollFactoryInstance();
         var game = new Game();
         game.play(rollFactoryObj);
         results = game.getFrames();
     };
-    
+
     var createResultsTable = function(){
         var body = d.body;
         var thead = d.createElement('thead');
@@ -166,3 +174,6 @@ var View = function(){
         }
     }
 };
+
+var view = new View();
+view.initGame();
