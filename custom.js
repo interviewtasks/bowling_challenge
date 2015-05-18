@@ -34,10 +34,7 @@ var SimulatedRollFactory = function() {
 };
 
 var Frame = function(rollFactoryObj){
-    var rolls = [];
-    var maxOfRolls = 2;
-    var maxPoints = 10;
-    var points = 0;
+    var rolls = [], maxOfRolls = 2, maxPoints = 10, points = 0, spare, strike;
 
     var createNewRoll = function(max){
         if (rolls.length < maxOfRolls) {
@@ -51,13 +48,13 @@ var Frame = function(rollFactoryObj){
     };
 
     var isStrike = function (val){
-        this.strike = (maxPoints === val);
-        return this.strike;
+        strike = (maxPoints === val);
+        return strike;
     };
 
     var isSpare = function(){
-        this.spare = (maxPoints === points);
-        return this.spare;
+        spare = (maxPoints === points);
+        return spare;
     };
 
     var addStats = function(val){
@@ -70,7 +67,7 @@ var Frame = function(rollFactoryObj){
             var newRollObj = addNewRoll(createNewRoll(maxPoints - points));
             rollPoints = newRollObj.takeARoll();
             addStats(rollPoints);
-            if (isStrike(rollPoints)) return;
+            if (isStrike(rollPoints)) return rolls;
             isSpare();
         }
         this.rolls = rolls;
@@ -83,6 +80,18 @@ var Frame = function(rollFactoryObj){
 
     this.getPointsByIndex = function(index){
         return rolls[index].roll;
+    };
+
+    this.getStrike = function(){
+        return strike;
+    };
+
+    this.getSpare = function(){
+        return spare;
+    };
+
+    this.setStrike = function(val){
+        strike = val;
     };
 };
 
@@ -109,30 +118,41 @@ var Game = function(){
         for (i = 0; i < maxOfFrames; i++) {
             var newFrame = addFrame(createFrame(rollFactoryObj));
             var newFrameRolls = newFrame.makeRolls();
-            rollNumber += 1;
-            newFrame.result = newFrame.getPoints();
-            additionalPoints[rollNumber] = [newFrame.getPoints(), i]];
-            score += frames[i].getPoints();
-            if (frames[i].strike) {
-                additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
-                additionalPoints[rollNumber + 1].push(rollNumber);
-                additionalPoints[rollNumber + 2] = additionalPoints[rollNumber + 2] || [[]];
-                additionalPoints[rollNumber + 2].push(rollNumber);
-            } else if (frames[i].spare){
-                additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
-                additionalPoints[rollNumber + 1].push(rollNumber);
-            }
-            var max = additionalPoints[rollNumber].length;
-            if (max > 1) {
-                var apElement = additionalPoints[rollNumber];
-                for (var j = 1; j < max; max++) {
-                    var apInd = apElement[j];
-                    frames[apElement[0][1]].result += additionalPoints[apInd][0][0];
+            var maxRolls = newFrameRolls.length;
+            newFrame.result = 0;
+            for (var k = 0; k < maxRolls; k++) {
+                rollNumber += 1;
+                newFrame.result += newFrame.getPointsByIndex(k);
+                additionalPoints[rollNumber] = additionalPoints[rollNumber] || [];
+                additionalPoints[rollNumber][0] = [newFrame.getPointsByIndex(k), i];
+                score += newFrame.getPointsByIndex(k);
+                console.log(0, newFrame.getPointsByIndex(k));
+                console.log(1, score);
+                //debugger;
+                if (newFrame.getStrike()) {
+                    newFrame.setStrike(false);
+                    additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
+                    additionalPoints[rollNumber + 1].push(rollNumber);
+                    additionalPoints[rollNumber + 2] = additionalPoints[rollNumber + 2] || [[]];
+                    additionalPoints[rollNumber + 2].push(rollNumber);
+                } else if (newFrame.getSpare()){
+                    additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
+                    additionalPoints[rollNumber + 1].push(rollNumber);
                 }
+                console.log(2, score);
+                var max = additionalPoints[rollNumber].length;
+                if (max > 1) {
+                    var apElement = additionalPoints[rollNumber];
+                    for (var j = 1; j < max; max++) {
+                        var apInd = apElement[j];
+                        frames[apElement[0][1]].result += additionalPoints[apInd][0][0];
+                    }
+                }
+                console.log(3, score);
             }
         }
         console.log(frames);
-        this.frames = frames;
+        console.log(score);
     };
 
     this.play = function(rollFactoryObj){
