@@ -125,37 +125,7 @@ var Game = function(){
             var newFrameRolls = newFrame.makeRolls();
             var maxRolls = newFrameRolls.length;
             newFrame.result = 0;
-/*            for (var k = 0; k < maxRolls; k++) {
-                rollNumber += 1;
-                newFrame.result += newFrame.getPointsByIndex(k);
-                additionalPoints[rollNumber] = additionalPoints[rollNumber] || [];
-                additionalPoints[rollNumber][0] = [newFrame.getPointsByIndex(k), i];
-                score += newFrame.getPointsByIndex(k);
-                console.log(0, newFrame.getPointsByIndex(k));
-                console.log(1, score);
-                //debugger;
-                console.log('additionalPoints', additionalPoints);
-                if (newFrame.getStrike()) {
-                    newFrame.setStrike(false);
-                    additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
-                    additionalPoints[rollNumber + 1].push(rollNumber);
-                    additionalPoints[rollNumber + 2] = additionalPoints[rollNumber + 2] || [[]];
-                    additionalPoints[rollNumber + 2].push(rollNumber);
-                } else if (newFrame.getSpare()){
-                    additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
-                    additionalPoints[rollNumber + 1].push(rollNumber);
-                }
-                console.log(2, score);
-                var max = additionalPoints[rollNumber].length;
-                if (max > 1) {
-                    var apElement = additionalPoints[rollNumber];
-                    for (var j = 1; j < max; max++) {
-                        var apInd = apElement[j];
-                        frames[apElement[0][1]].result += additionalPoints[apInd][0][0];
-                    }
-                }
-                console.log(3, score);
-            }*/
+            console.log('fillFrames', calcScores(frames));
         }
         console.log(frames);
         console.log(score);
@@ -174,7 +144,11 @@ var Game = function(){
         try {
             score = calcFrameScore(new FramesRollsIterator(frames), scoresUpToExclude);
             frameScores.push(score);
-        } // catch exception return false
+            console.log(frameScores);
+        } catch (err) {
+            if (err instanceof NoElements) return false;
+            throw err;
+        }
         return (frameScores.length === frames.length)
     };
 
