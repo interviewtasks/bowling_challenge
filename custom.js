@@ -93,6 +93,10 @@ var Frame = function(rollFactoryObj){
     this.setStrike = function(val){
         strike = val;
     };
+
+    this.getRolls = function(){
+        return rolls;
+    };
 };
 
 var Game = function(){
@@ -120,7 +124,7 @@ var Game = function(){
             var newFrameRolls = newFrame.makeRolls();
             var maxRolls = newFrameRolls.length;
             newFrame.result = 0;
-            for (var k = 0; k < maxRolls; k++) {
+/*            for (var k = 0; k < maxRolls; k++) {
                 rollNumber += 1;
                 newFrame.result += newFrame.getPointsByIndex(k);
                 additionalPoints[rollNumber] = additionalPoints[rollNumber] || [];
@@ -129,6 +133,7 @@ var Game = function(){
                 console.log(0, newFrame.getPointsByIndex(k));
                 console.log(1, score);
                 //debugger;
+                console.log('additionalPoints', additionalPoints);
                 if (newFrame.getStrike()) {
                     newFrame.setStrike(false);
                     additionalPoints[rollNumber + 1] = additionalPoints[rollNumber + 1] || [[]];
@@ -149,7 +154,7 @@ var Game = function(){
                     }
                 }
                 console.log(3, score);
-            }
+            }*/
         }
         console.log(frames);
         console.log(score);
@@ -161,6 +166,27 @@ var Game = function(){
 
     this.getFrames = function(){
         return frames;
+    };
+};
+
+var FramesRollsIterator = function(frames){
+    var iterData = [], max = frames.length, i, iterPointer = 0;
+    for (i = 0; i< max; i++) {
+        var frame = frames[i];
+        var rolls = frame.getRolls();
+        rolls.forEach(function(roll){
+            this.push([i, frame, roll]);
+        }, iterData);
+    }
+    this.next = function(){
+        if (this.hasNext()) {
+            return iterData[iterPointer++];
+        }
+        throw "NoElements";
+    };
+
+    this.hasNext = function(){
+        return (iterData.length > iterPointer);
     };
 };
 
