@@ -18,29 +18,13 @@
 
 var d = document;
 
-var preparedRolls = [
-	2,4,
-	5,5,
-	2,1,
-	2,4,
-	3,5,
-	3,6,
-	2,4,
-	3,5,
-	10,
-	10,
-	2,10
-];
-var rollIndex = 0;
-
 var SimulatedRoll = function(max){
     var min = 1;
 
     this.takeARoll = function(){
-        this.roll = preparedRolls[rollIndex];//(Math.random() * max | 0) + min;
-		console.log('takeARoll index = ', rollIndex, this.roll);
-		rollIndex ++;
-        return this.roll;
+        this.roll = (Math.random() * max | 0) + min;
+		console.log('takeARoll', this.roll);
+		return this.roll;
     };
 
     this.getRoll = function(){
@@ -150,9 +134,11 @@ var Game = function(){
                 if (newFrame.getStrike()) newFrame.makeExtraRolls(2);
                 else if (newFrame.getSpare()) newFrame.makeExtraRolls(1);
             }
+            calcScores(frames)
             console.log(newFrame.getRolls());
-            console.log('fillFrames', i, calcScores(frames), frameScores);
+            //console.log('fillFrames', i, calcScores(frames), frameScores);
         }
+        calcScores(frames)
         console.log(frames);
         console.log(score);
     };
