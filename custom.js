@@ -18,11 +18,16 @@
 
 var d = document;
 
+var preparedRolls = [2,4,5,5,2,1,2,4,3,5,3,6,2,4,3,5,10,10];
+var rollIndex = 0;
+
 var SimulatedRoll = function(max){
     var min = 1;
 
     this.takeARoll = function(){
-        this.roll = (Math.random() * max | 0) + min;
+        this.roll = preparedRolls[rollIndex];//(Math.random() * max | 0) + min;
+		console.log('takeARoll index = ', rollIndex, this.roll);
+		rollIndex ++;
         return this.roll;
     };
 
@@ -123,10 +128,15 @@ var Game = function(){
         for (i = 0; i < maxOfFrames; i++) {
             var newFrame = addFrame(createFrame(rollFactoryObj));
             var newFrameRolls = newFrame.makeRolls();
+			
             var maxRolls = newFrameRolls.length;
             newFrame.result = 0;
-            console.log('fillFrames', calcScores(frames));
+            console.log('fillFrames', i, calcScores(frames), frameScores);
         }
+		for (i=0; i<10; i++) {
+			if (frameScores.length === maxOfFrames) break;
+			calcScores(frames);
+		}
         console.log(frames);
         console.log(score);
     };
@@ -146,31 +156,34 @@ var Game = function(){
             frameScores.push(score);
             console.log(frameScores);
         } catch (err) {
-            if (err instanceof NoElements) return false;
+            if (err instanceof NoElements) {
+				console.log(err, scoresUpToExclude);
+			}
             throw err;
         }
-        return (frameScores.length === frames.length)
     };
 
 
     var calcFrameScore = function(FramesRollsIterator, scoresUpToExclude){
         while (FramesRollsIterator.hasNext()) {
-            var nextSet = FramesRollsIterator.next();
-            if (nextSet.frameNr === scoresUpToExclude) {
+            var currentRoll = FramesRollsIterator.next();
+            if (currentRoll.frameNr === scoresUpToExclude) {
+				console.log('currentRoll', currentRoll);
                 var score, nextSet1, nextSet2;
-                if (nextSet.frame.getStrike()) {
+                if (currentRoll.frame.getStrike() || currentRoll.frame.getSpare()) {
                     nextSet1 = FramesRollsIterator.next();
                     nextSet2 = FramesRollsIterator.next();
-                    score = nextSet.frame.getPoints() + nextSet1.roll.getRoll() + nextSet2.roll.getRoll();
-                } else if (nextSet.frame.getSpare()) {
-                    nextSet1 = FramesRollsIterator.next();
-                    score = nextSet.frame.getPoints() + nextSet1.roll.getRoll();
+                    score = currentRoll.roll.getRoll() + nextSet1.roll.getRoll() + nextSet2.roll.getRoll();
                 } else {
-                    score = nextSet.frame.getPoints();
+                    nextSet1 = FramesRollsIterator.next();
+                    score = currentRoll.roll.getRoll() + nextSet1.roll.getRoll();
+					console.log(score)
                 }
+				console.log(currentRoll.frameNr, score)
                 return score;
             }
         }
+		throw new NoElements();
     };
 };
 
