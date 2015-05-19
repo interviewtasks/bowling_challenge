@@ -25,6 +25,10 @@ var SimulatedRoll = function(max){
         this.roll = (Math.random() * max | 0) + min;
         return this.roll;
     };
+
+    this.getRoll = function(){
+        return this.roll;
+    };
 };
 
 var SimulatedRollFactory = function() {
@@ -100,9 +104,7 @@ var Frame = function(rollFactoryObj){
 };
 
 var Game = function(){
-    var frames = [];
-    var maxOfFrames = 10;
-    var score = 0;
+    var frames = [], maxOfFrames = 10, score = 0, frameScores = [];
 
     var createFrame = function(rollFactoryObj){
         if (frames.length < maxOfFrames) {
@@ -118,7 +120,6 @@ var Game = function(){
     var fillFrames = function(rollFactoryObj){
         var i;
         var rollNumber = 0;
-        var additionalPoints = [];
         for (i = 0; i < maxOfFrames; i++) {
             var newFrame = addFrame(createFrame(rollFactoryObj));
             var newFrameRolls = newFrame.makeRolls();
@@ -167,6 +168,31 @@ var Game = function(){
     this.getFrames = function(){
         return frames;
     };
+
+    var calcScores = function(frames){
+        var scoresUpToExclude = frameScores.length;
+    };
+
+
+    var calcFrameScore = function(FramesRollsIterator, scoresUpToExclude){
+        while (FramesRollsIterator.hasNext()) {
+            var nextSet = FramesRollsIterator.next();
+            if (nextSet.frameNr === scoresUpToExclude) {
+                var score, nextSet1, nextSet2;
+                if (nextSet.frame.getStrike()) {
+                    nextSet1 = FramesRollsIterator.next();
+                    nextSet2 = FramesRollsIterator.next();
+                    score = nextSet.frame.getPoints() + nextSet1.roll.getRoll() + nextSet2.roll.getRoll();
+                } else if (nextSet.frame.getSpare()) {
+                    nextSet1 = FramesRollsIterator.next();
+                    score = nextSet.frame.getPoints() + nextSet1.roll.getRoll();
+                } else {
+                    score = nextSet.frame.getPoints();
+                }
+                return score;
+            }
+        }
+    };
 };
 
 var FramesRollsIterator = function(frames){
@@ -175,12 +201,12 @@ var FramesRollsIterator = function(frames){
         var frame = frames[i];
         var rolls = frame.getRolls();
         rolls.forEach(function(roll){
-            this.push([i, frame, roll]);
+            this.push([{'frameNr': i, 'frame': frame, 'roll': roll}]);
         }, iterData);
     }
     this.next = function(){
         if (this.hasNext()) {
-            return iterData[iterPointer++];
+            return iterData[iterPointer++][0];
         }
         throw "NoElements";
     };
