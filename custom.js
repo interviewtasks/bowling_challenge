@@ -16,7 +16,7 @@
  ·       Create a method that randomly throws a roll (one roll is 1-10 pins knocked down), and progresses the scoring.
  */
 
-//var d = document;
+var d = document;
 
 var SimulatedRoll = function(max){
     var min = 1;
@@ -170,7 +170,12 @@ var Game = function(){
     };
 
     var calcScores = function(frames){
-        var scoresUpToExclude = frameScores.length;
+        var scoresUpToExclude = frameScores.length, score;
+        try {
+            score = calcFrameScore(new FramesRollsIterator(frames), scoresUpToExclude);
+            frameScores.push(score);
+        } // catch exception return false
+        return (frameScores.length === frames.length)
     };
 
 
@@ -208,12 +213,17 @@ var FramesRollsIterator = function(frames){
         if (this.hasNext()) {
             return iterData[iterPointer++][0];
         }
-        throw "NoElements";
+        throw new NoElements(); //exception
     };
 
     this.hasNext = function(){
         return (iterData.length > iterPointer);
     };
+};
+
+var NoElements = function(){
+    this.name = 'NoElements';
+    this.message = 'No Elements';
 };
 
 var View = function(){
