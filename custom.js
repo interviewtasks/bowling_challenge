@@ -18,7 +18,19 @@
 
 var d = document;
 
-var preparedRolls = [2,4,5,5,2,1,2,4,3,5,3,6,2,4,3,5,10,10];
+var preparedRolls = [
+	2,4,
+	5,5,
+	2,1,
+	2,4,
+	3,5,
+	3,6,
+	2,4,
+	3,5,
+	10,
+	10,
+	2,10
+];
 var rollIndex = 0;
 
 var SimulatedRoll = function(max){
@@ -46,12 +58,10 @@ var Frame = function(rollFactoryObj){
     var rolls = [], maxOfRolls = 2, maxPoints = 10, points = 0, spare, strike;
 
     var createNewRoll = function(max){
-        if (rolls.length < maxOfRolls) {
-            return rollFactoryObj.createInstance(max);
-        } else throw new Error('Number of rolls exceeded');
+        return rollFactoryObj.createInstance(max);
     };
 
-    var addNewRoll = function(newRollObj){
+    this.addNewRoll = function(newRollObj){
         rolls.push(newRollObj);
         return newRollObj;
     };
@@ -73,7 +83,7 @@ var Frame = function(rollFactoryObj){
     this.makeRolls = function(){
         var rollPoints;
         for (var i = 0; i < maxOfRolls; i++) {
-            var newRollObj = addNewRoll(createNewRoll(maxPoints - points));
+            var newRollObj = this.addNewRoll(createNewRoll(maxPoints - points));
             rollPoints = newRollObj.takeARoll();
             addStats(rollPoints);
             if (isStrike(rollPoints)) return rolls;
@@ -81,6 +91,14 @@ var Frame = function(rollFactoryObj){
         }
         this.rolls = rolls;
         return rolls;
+    };
+
+    this.makeExtraRolls = function(numberOfRolls){
+        for (var i = 0; i < numberOfRolls; i++) {
+            var newRollObj = this.addNewRoll(createNewRoll(maxPoints));
+            rollPoints = newRollObj.takeARoll();
+            addStats(rollPoints);
+        }
     };
 
     this.getPoints = function(){
@@ -128,15 +146,13 @@ var Game = function(){
         for (i = 0; i < maxOfFrames; i++) {
             var newFrame = addFrame(createFrame(rollFactoryObj));
             var newFrameRolls = newFrame.makeRolls();
-			
-            var maxRolls = newFrameRolls.length;
-            newFrame.result = 0;
+            if (i === (maxOfFrames - 1)) {
+                if (newFrame.getStrike()) newFrame.makeExtraRolls(2);
+                else if (newFrame.getSpare()) newFrame.makeExtraRolls(1);
+            }
+            console.log(newFrame.getRolls());
             console.log('fillFrames', i, calcScores(frames), frameScores);
         }
-		for (i=0; i<10; i++) {
-			if (frameScores.length === maxOfFrames) break;
-			calcScores(frames);
-		}
         console.log(frames);
         console.log(score);
     };
@@ -157,8 +173,9 @@ var Game = function(){
             console.log(frameScores);
         } catch (err) {
             if (err instanceof NoElements) {
-				console.log(err, scoresUpToExclude);
-			}
+                console.log(err, scoresUpToExclude);
+                return;
+            }
             throw err;
         }
     };
