@@ -23,7 +23,6 @@ var SimulatedRoll = function(max){
 
     this.takeARoll = function(){
         this.roll = (Math.random() * max | 0) + min;
-		console.log('takeARoll', this.roll);
 		return this.roll;
     };
 
@@ -134,13 +133,11 @@ var Game = function(){
                 if (newFrame.getStrike()) newFrame.makeExtraRolls(2);
                 else if (newFrame.getSpare()) newFrame.makeExtraRolls(1);
             }
-            calcScores(frames)
-            console.log(newFrame.getRolls());
-            //console.log('fillFrames', i, calcScores(frames), frameScores);
+            //calcScores(frames);
         }
-        calcScores(frames)
-        console.log(frames);
-        console.log(score);
+        while (frameScores.length < maxOfFrames) {
+            calcScores(frames);
+        }
     };
 
     this.play = function(rollFactoryObj){
@@ -151,15 +148,17 @@ var Game = function(){
         return frames;
     };
 
+    this.getFrameScores = function(){
+        return frameScores;
+    };
+
     var calcScores = function(frames){
         var scoresUpToExclude = frameScores.length, score;
         try {
             score = calcFrameScore(new FramesRollsIterator(frames), scoresUpToExclude);
             frameScores.push(score);
-            console.log(frameScores);
         } catch (err) {
             if (err instanceof NoElements) {
-                console.log(err, scoresUpToExclude);
                 return;
             }
             throw err;
@@ -171,7 +170,6 @@ var Game = function(){
         while (FramesRollsIterator.hasNext()) {
             var currentRoll = FramesRollsIterator.next();
             if (currentRoll.frameNr === scoresUpToExclude) {
-				console.log('currentRoll', currentRoll);
                 var score, nextSet1, nextSet2;
                 if (currentRoll.frame.getStrike() || currentRoll.frame.getSpare()) {
                     nextSet1 = FramesRollsIterator.next();
@@ -180,9 +178,7 @@ var Game = function(){
                 } else {
                     nextSet1 = FramesRollsIterator.next();
                     score = currentRoll.roll.getRoll() + nextSet1.roll.getRoll();
-					console.log(score)
                 }
-				console.log(currentRoll.frameNr, score)
                 return score;
             }
         }
@@ -227,25 +223,31 @@ var View = function(){
         var rollFactoryObj = createRollFactoryInstance();
         var game = new Game();
         game.play(rollFactoryObj);
-        results = game.getFrames();
+        results = game.getFrameScores();
     };
 
-    var createResultsTable = function(){
+    this.createResultsTable = function(){
         var body = d.body;
-        var thead = d.createElement('thead');
-        var tfoot = d.createElement('tfoot');
         var table = d.createElement('table');
         var tbody = d.createElement('tbody');
         var max = results.length;
         for (var i = 0; i < max; i++) {
             var tr = d.createElement('tr');
             var td = d.createElement('td');
-            var text = d.createTextNode(i+1);
+            var text = d.createTextNode('Frame #' + (i+1));
             td.appendChild(text);
-            var frame = results[i];
+            tr.appendChild(td);
+            td = d.createElement('td');
+            text = d.createTextNode('' + results[i]);
+            td.appendChild(text);
+            tr.appendChild(td);
+            tbody.appendChild(tr);
         }
+        table.appendChild(tbody);
+        body.appendChild(table);
     }
 };
 
 var view = new View();
 view.initGame();
+view.createResultsTable();
