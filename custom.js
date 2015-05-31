@@ -38,7 +38,7 @@ var SimulatedRollFactory = function() {
 };
 
 var Frame = function(rollFactoryObj){
-    var rolls = [], maxOfRolls = 2, maxPoints = 10, points = 0, spare, strike;
+    var rolls = [], maxPoints = 10, points = 0, spare, strike;
 
     var createNewRoll = function(max){
         return rollFactoryObj.createInstance(max);
@@ -63,25 +63,18 @@ var Frame = function(rollFactoryObj){
         points += val;
     };
 
-    this.makeRolls = function(){
+    this.makeRolls = function(rollsAmount, isStandardRoll){
         var rollPoints;
         for (var i = 0; i < maxOfRolls; i++) {
-            var newRollObj = this.addNewRoll(createNewRoll(maxPoints - points));
+            var newRollObj = this.addNewRoll(createNewRoll(rollsAmount));
             rollPoints = newRollObj.takeARoll();
             addStats(rollPoints);
-            if (isStrike(rollPoints)) return rolls;
-            isSpare();
+            if (isStandardRoll) {
+                if (isStrike(rollPoints)) return rolls;
+                isSpare();
+            }
         }
-        this.rolls = rolls;
         return rolls;
-    };
-
-    this.makeExtraRolls = function(numberOfRolls){
-        for (var i = 0; i < numberOfRolls; i++) {
-            var newRollObj = this.addNewRoll(createNewRoll(maxPoints));
-            rollPoints = newRollObj.takeARoll();
-            addStats(rollPoints);
-        }
     };
 
     this.getPoints = function(){
@@ -110,7 +103,7 @@ var Frame = function(rollFactoryObj){
 };
 
 var Game = function(){
-    var frames = [], maxOfFrames = 10, score = 0, frameScores = [];
+    var frames = [], maxOfRolls = 2, maxOfFrames = 10, score = 0, frameScores = [];
 
     var createFrame = function(rollFactoryObj){
         if (frames.length < maxOfFrames) {
@@ -128,10 +121,10 @@ var Game = function(){
         var rollNumber = 0;
         for (i = 0; i < maxOfFrames; i++) {
             var newFrame = addFrame(createFrame(rollFactoryObj));
-            var newFrameRolls = newFrame.makeRolls();
+            var newFrameRolls = newFrame.makeRolls(maxOfRolls, true);
             if (i === (maxOfFrames - 1)) {
-                if (newFrame.getStrike()) newFrame.makeExtraRolls(2);
-                else if (newFrame.getSpare()) newFrame.makeExtraRolls(1);
+                if (newFrame.getStrike()) newFrame.makeRolls(2);
+                else if (newFrame.getSpare()) newFrame.makeRolls(1);
             }
             //calcScores(frames);
         }
