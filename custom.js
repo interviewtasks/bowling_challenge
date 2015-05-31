@@ -105,26 +105,30 @@ var Game = function(){
                 if (newFrame.getStrike()) newFrame.makeRolls(2);
                 else if (newFrame.getSpare()) newFrame.makeRolls(1);
             }
-            //calcScores(frames);
-        }
-        while (frameScores.length < maxOfFrames) {
-            calcScores(frames);
         }
     };
 
     this.play = function(rollFactoryObj){
         fillFrames(rollFactoryObj);
+        calcAllScores();
+        return getFrameScores();
+    };
+
+    var calcAllScores = function(){
+        while (frameScores.length < maxOfFrames) {
+            calcFrameScoreIteration(frames);
+        }
     };
 
     this.getFrames = function(){
         return frames;
     };
 
-    this.getFrameScores = function(){
+    var getFrameScores = function(){
         return frameScores;
     };
 
-    var calcScores = function(frames){
+    var calcFrameScoreIteration = function(frames){
         var scoresUpToExclude = frameScores.length, score;
         try {
             score = calcFrameScore(new FramesRollsIterator(frames), scoresUpToExclude);
@@ -185,20 +189,7 @@ var NoElements = function(){
 };
 
 var View = function(){
-    var results = [];
-
-    var createRollFactoryInstance = function(){
-        return new SimulatedRollFactory();
-    };
-
-    this.initGame = function(){
-        var rollFactoryObj = createRollFactoryInstance();
-        var game = new Game();
-        game.play(rollFactoryObj);
-        results = game.getFrameScores();
-    };
-
-    this.createResultsTable = function(){
+    this.createResultsTable = function(results){
         var body = d.body;
         var table = d.createElement('table');
         var tbody = d.createElement('tbody');
@@ -220,6 +211,7 @@ var View = function(){
     }
 };
 
+var game = new Game();
 var view = new View();
-view.initGame();
-view.createResultsTable();
+var rollFactory = new SimulatedRollFactory();
+view.createResultsTable(game.play(rollFactory));
