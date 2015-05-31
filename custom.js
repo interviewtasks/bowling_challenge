@@ -49,28 +49,28 @@ var Frame = function(rollFactoryObj){
         return newRollObj;
     };
 
-    var isStrike = function (){
+    this.isStrike = function (){
         if (typeof strike === "undefined") strike = (rolls.length && maxPoints === rolls[0].getRollPoints());
         return strike;
     };
 
-    var isSpare = function(){
-        if (typeof spare === "undefined") spare = (rolls.length && maxPoints === rolls[0].getRollPoints());
+    this.isSpare = function(){
+        if (typeof spare === "undefined") spare = (rolls.length == 2 && maxPoints === points);
         return spare;
     };
 
-    var addStats = function(val){
+    var addPoints = function(val){
         points += val;
     };
 
     this.makeRolls = function(rollsAmount, isStandardRoll){
-        var rollPoints;
-        for (var i = 0; i < maxOfRolls; i++) {
-            var newRollObj = this.addNewRoll(createNewRoll(rollsAmount));
+        var rollPoints = 0;
+        for (var i = 0; i < rollsAmount; i++) {
+            var newRollObj = this.addNewRoll(createNewRoll(maxPoints - rollPoints));
             rollPoints = newRollObj.takeARoll();
-            addStats(rollPoints);
+            addPoints(rollPoints);
             if (isStandardRoll) {
-                if (isStrike()) return rolls;
+                if (this.isStrike()) return rolls;
             }
         }
         return rolls;
@@ -102,8 +102,8 @@ var Game = function(){
             var newFrame = addFrame(createFrame(rollFactoryObj));
             var newFrameRolls = newFrame.makeRolls(maxOfRolls, true);
             if (i === (maxOfFrames - 1)) {
-                if (newFrame.getStrike()) newFrame.makeRolls(2);
-                else if (newFrame.getSpare()) newFrame.makeRolls(1);
+                if (newFrame.isStrike()) newFrame.makeRolls(2);
+                else if (newFrame.isSpare()) newFrame.makeRolls(1);
             }
         }
     };
