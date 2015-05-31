@@ -19,15 +19,15 @@
 var d = document;
 
 var SimulatedRoll = function(max){
-    var min = 1;
+    var min = 1, rollPoints;
 
     this.takeARoll = function(){
-        this.roll = (Math.random() * max | 0) + min;
-		return this.roll;
+        rollPoints = (Math.random() * max | 0) + min;
+        return rollPoints;
     };
 
-    this.getRoll = function(){
-        return this.roll;
+    this.getRollPoints = function(){
+        return rollPoints;
     };
 };
 
@@ -49,13 +49,13 @@ var Frame = function(rollFactoryObj){
         return newRollObj;
     };
 
-    var isStrike = function (val){
-        strike = (maxPoints === val);
+    var isStrike = function (){
+        if (typeof strike === "undefined") strike = (rolls.length && maxPoints === rolls[0].getRollPoints());
         return strike;
     };
 
     var isSpare = function(){
-        spare = (maxPoints === points);
+        if (typeof spare === "undefined") spare = (rolls.length && maxPoints === rolls[0].getRollPoints());
         return spare;
     };
 
@@ -70,8 +70,7 @@ var Frame = function(rollFactoryObj){
             rollPoints = newRollObj.takeARoll();
             addStats(rollPoints);
             if (isStandardRoll) {
-                if (isStrike(rollPoints)) return rolls;
-                isSpare();
+                if (isStrike()) return rolls;
             }
         }
         return rolls;
@@ -83,14 +82,6 @@ var Frame = function(rollFactoryObj){
 
     this.getPointsByIndex = function(index){
         return rolls[index].roll;
-    };
-
-    this.getStrike = function(){
-        return strike;
-    };
-
-    this.getSpare = function(){
-        return spare;
     };
 
     this.setStrike = function(val){
@@ -164,18 +155,18 @@ var Game = function(){
             var currentRoll = FramesRollsIterator.next();
             if (currentRoll.frameNr === scoresUpToExclude) {
                 var score, nextSet1, nextSet2;
-                if (currentRoll.frame.getStrike() || currentRoll.frame.getSpare()) {
+                if (currentRoll.frame.isStrike() || currentRoll.frame.isSpare()) {
                     nextSet1 = FramesRollsIterator.next();
                     nextSet2 = FramesRollsIterator.next();
-                    score = currentRoll.roll.getRoll() + nextSet1.roll.getRoll() + nextSet2.roll.getRoll();
+                    score = currentRoll.roll.getRollPoints() + nextSet1.roll.getRollPoints() + nextSet2.roll.getRollPoints();
                 } else {
                     nextSet1 = FramesRollsIterator.next();
-                    score = currentRoll.roll.getRoll() + nextSet1.roll.getRoll();
+                    score = currentRoll.roll.getRollPoints() + nextSet1.roll.getRollPoints();
                 }
                 return score;
             }
         }
-		throw new NoElements();
+        throw new NoElements();
     };
 };
 
