@@ -76,18 +76,6 @@ var Frame = function(rollFactoryObj){
         return rolls;
     };
 
-    this.getPoints = function(){
-        return points;
-    };
-
-    this.getPointsByIndex = function(index){
-        return rolls[index].roll;
-    };
-
-    this.setStrike = function(val){
-        strike = val;
-    };
-
     this.getRolls = function(){
         return rolls;
     };
